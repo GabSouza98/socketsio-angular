@@ -1,0 +1,19 @@
+<div class="container">
+
+    <div class="flex column">
+      
+      <h1 class="title">Welcome to Sockets Io Chat Rooms</h1>
+  
+      <ul class="rooms-container">       
+        <div *ngFor="let room of roomNames">
+          <a [routerLink]="['/room', room]">{{room}}</a>
+        </div>
+      </ul>
+      
+      <div class="row create-room">
+        <input type="text" autocomplete="off" placeholder="Room name..." id="room-input" [(ngModel)]="roomName">
+        <button (click)="onCreateRoom(roomName)" type="button" id="room-button">Create Room</button>
+      </div>
+  
+    </div>
+</div>

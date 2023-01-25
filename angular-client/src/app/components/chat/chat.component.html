@@ -1,0 +1,21 @@
+<div class="container">
+
+    <div class="flex column">
+
+        <h1 class="title">Room {{roomName}}</h1>
+
+        <div class="messages-container">            
+            <div  *ngFor="let message of messages">{{message}}</div>
+        </div>
+
+        <div class="row send-message">
+            <input type="text" autocomplete="off" placeholder="Message..." id="message-input" [(ngModel)]="message">
+            <button (click)="onSendMessage(message)" type="button" id="message-button">Send</button>
+        </div>
+
+        <a routerLink="/" (click)="leaveRoom()" routerLinkActive="active" ariaCurrentWhenActive="page">Return to Lobby</a>
+
+    </div>
+
+    
+</div>
