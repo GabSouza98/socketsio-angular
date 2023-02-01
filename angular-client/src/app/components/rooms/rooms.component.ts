@@ -18,8 +18,7 @@ export class RoomsComponent {
     private router: Router,
 	) { }
 
-  onCreateRoom(roomName : string) {
-    // this.socketService.joinRoom(roomName);
+  onCreateRoom(roomName : string) {    
     this.roomName = '';
     // this.router.navigate(['/room', roomName]);
     this.socketService.createRoom(roomName);
@@ -27,7 +26,7 @@ export class RoomsComponent {
 
 	ngOnInit(): void {
     this.socketService.fetchRooms();
-    this.socketService.onFetchRooms().subscribe( (data:any) => {
+    this.socketService.onFetchRooms().subscribe( (data:string[]) => {
         this.roomNames = data;
       }
     );
