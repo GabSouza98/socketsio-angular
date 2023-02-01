@@ -21,8 +21,8 @@ export class RoomsComponent {
   onCreateRoom(roomName : string) {
     // this.socketService.joinRoom(roomName);
     this.roomName = '';
-    this.router.navigate(['/room', roomName]);
-    // this.socketService.createRoom(roomName);
+    // this.router.navigate(['/room', roomName]);
+    this.socketService.createRoom(roomName);
   }
 
 	ngOnInit(): void {

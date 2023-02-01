@@ -19,9 +19,7 @@ export class SocketService {
 	}
 
   joinRoom(room : string) {
-    this.socket.emit("create-and-join-room", room, (message: any) => {
-      console.log(message);
-    });
+    this.socket.emit("join-room", room);
   }
 
   leaveRoom(room : string) {

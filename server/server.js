@@ -20,11 +20,13 @@ io.on("connection", socket => {
         }                   
     })
 
-    socket.on("join-room", (room, callback) => {
-        //cada usuario pode estar em varios rooms ao mesmo tempo !
-        //após dar join na room, o servidor manda um callback para o client contendo a mensagem de sucesso
+    socket.on("join-room", room => {
         socket.join(room);
-        callback(`Joined ${room}`);
+        if(roomsMap.has(room)) {                                  
+            //array of sockets inside that room
+            let usersArray = [...io.of("/").adapter.rooms.get(room)];
+            roomsMap.set(room, usersArray);
+        }
     })
 
     socket.on('disconnect', () => console.log('disconnected')); 
@@ -32,59 +34,31 @@ io.on("connection", socket => {
     //novas partes
 
     socket.on("fetch-rooms", () => {
-        const roomsMap = io.of("/").adapter.rooms;
-        var roomsMapCopy = new Map(roomsMap)
-
-        for (const roomId of roomsMap.keys()) {
-            const set = roomsMap.get(roomId);
-            if(set.size == 1 && set.has(roomId)) {
-                roomsMapCopy.delete(roomId);
-            }
-        }
-
-        const array = [...roomsMapCopy.keys()];
-        console.log(array);
+        const array = [...roomsMap.keys()];
         io.emit("update-rooms", array);
-    })
-
-    socket.on("create-and-join-room", room => {
-        socket.join(room);       
-
-        //pega os rooms que este socket está presente
-        // const array = [...socket.rooms];
-        // array.shift(); //removes first item, which is the default room connected
-        // console.log(array);        
-
-        const roomsMap = io.of("/").adapter.rooms;
-        var roomsMapCopy = new Map(roomsMap)
-
-        for (const roomId of roomsMap.keys()) {
-            const set = roomsMap.get(roomId);
-            if(set.size == 1 && set.has(roomId)) {
-                roomsMapCopy.delete(roomId);
-            }
-        }
-
-        const array = [...roomsMapCopy.keys()];
-        console.log(array);
-        io.emit("update-rooms", array);
-
     })
 
     socket.on("leave-room", room => {
+        if(roomsMap.has(room)) {                  
+            let userArray = [...roomsMap.get(room)];
+            let userArrayFiltered = userArray.filter( id => id !== socket.id);            
+            roomsMap.set(room, userArrayFiltered);
+        }
         socket.leave(room);
     });
 
     socket.on("create-room", room => {
-        if( !(room in roomsArray) ) {
-            roomsArray.push(room);
+        if(!roomsMap.has(room)) {
+            roomsMap.set(room, []);
         }
+        const array = [...roomsMap.keys()];
+        io.emit("update-rooms", array);
     })
 
-    // setInterval(function () {
-    //     console.log("ROTINA");
-    //     console.log(roomsArray);
-    // }, 5000);
+    setInterval(function () {
+        console.log("ROTINA");
+        console.log(roomsMap);
+    }, 5000);
 
 })
 
@@ -92,7 +66,8 @@ instrument(io, {
     auth: false
 });
 
-const roomsArray = [];
+var roomsMap = new Map();
+
 
 
 
