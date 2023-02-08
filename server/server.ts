@@ -1,7 +1,9 @@
 // const { instrument } = require('@socket.io/admin-ui');
 import { instrument } from '@socket.io/admin-ui';
-
 import { Server } from "socket.io";
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
 
 const io = new Server(3000, {
     cors: {
@@ -30,55 +32,163 @@ io.on("connection", (socket : any) => {
         }                   
     })
 
-    socket.on("join-room", (room : any) => {
+    socket.on("join-room", async (room : string) => {
         socket.join(room);
-        if(roomsMap.has(room)) {                                  
-            //set of sockets inside that room
-            let usersArray = io.of("/").adapter.rooms.get(room);
-            let array = usersArray?.values();       
-            if(array) {
-                roomsMap.set(room, Array.from(array));
-            }             
-        }
-    })
 
-    socket.on('disconnect', () => console.log('disconnected')); 
+        const existingRoom = await prisma.room.findUnique({
+            where: {
+                name: room
+            }
+        });
 
-    socket.on("fetch-rooms", () => {
-        const array = Array.from(roomsMap.keys());
-        io.emit("update-rooms", array);
-    })
+        if(existingRoom) {
 
-    socket.on("leave-room", (room : string) => {
-        socket.leave(room);
-        
-        if(roomsMap.has(room)) {     
-            let userArray = roomsMap.get(room);     
-            if(userArray) {                
-                let set = io.of("/").adapter.rooms.get(room);     
-                let iterable = set?.values();                      
-                if(iterable) {
-                    let array = Array.from(iterable);                             
-                    roomsMap.set(room, Array.from(array));
-                } else {
-                    roomsMap.set(room, []);
-                }               
-            }                                         
+            const existingUser = await prisma.user.findUnique({
+                where: {
+                    socket: socket.id.toString()
+                }
+            });
+
+            if(existingUser) {
+                await prisma.user.update({
+                    where: {
+                        socket: socket.id.toString()                                        
+                    },
+                    data: {
+                        roomId: existingRoom.id
+                    }
+                })
+            }            
         }        
+
+        getRooms();
+    })
+
+    socket.on('disconnect', async () => {
+
+        const user = await prisma.user.findUnique({
+            where: {
+                socket: socket.id.toString()
+            }
+        })
+
+        if(user) {                     
+            await prisma.user.delete({
+                where: {
+                    socket: socket.id.toString()
+                }
+            })
+        }       
+
+        
+    }); 
+
+    socket.on("fetch-rooms", async () => {
+        getRooms();
+    })
+
+    socket.on("leave-room", async (room : string) => {
+
+        socket.leave(room);
+
+        const existingRoom = await prisma.room.findUnique({
+            where: {
+                name: room
+            }
+        });
+
+        if(existingRoom) {
+
+            const existingUser = await prisma.user.findUnique({
+                where: {
+                    socket: socket.id.toString()
+                }
+            });
+
+            if(existingUser) {
+                await prisma.user.update({
+                    where: {
+                        socket: socket.id.toString()                                        
+                    },
+                    data: {
+                        roomId: null
+                    }
+                })
+            }            
+        }                
     });
 
-    socket.on("create-room", (room : string) => {
-        if(!roomsMap.has(room)) {
-            roomsMap.set(room, []);
+    socket.on("create-room", async (room : string) => {     
+
+        const existingRoom = await prisma.room.findUnique({
+            where: {
+                name: room
+            }
+        });
+
+        if(!existingRoom) {
+            await prisma.room.create({
+                data: {
+                    name: room
+                }
+            })
         }
-        const array = Array.from(roomsMap.keys());
-        io.emit("update-rooms", array);
+
+        getRooms();
     })
 
-    setInterval(function () {
-        console.log("ROTINA");
-        console.log(roomsMap);
-    }, 5000);
+    socket.on("create-user", async (userName : string) => {     
+
+        const existingUser = await prisma.user.findUnique({
+            where: {
+                socket: userName
+            }
+        });
+
+        if(!existingUser) {
+            await prisma.user.create({
+                data: {
+                    socket: socket.id.toString(),
+                    userName: userName,
+                    roomId: null
+                }
+            })
+        }        
+    })
+    
+    socket.on("delete-room", async (room : string) => { 
+        const existingRoom = await prisma.room.findUnique({
+            where: {
+                name: room
+            }
+        });
+
+        if(existingRoom) {
+            await prisma.room.delete({
+                where: {
+                    name: room
+                }
+            })
+        }
+
+        getRooms();
+    })
+
+
+    // setInterval(async function () {
+    //     console.log("ROOMS");
+    //     const rooms = await prisma.room.findMany();
+    //     if(rooms) {
+    //         console.log(rooms);
+    //     }
+
+    //     console.log("USERS");
+    //     const users = await prisma.user.findMany();
+    //     if(users) {
+    //         console.log(users);
+    //     }
+
+    // }, 5000);
 
 })
 
@@ -87,6 +197,20 @@ instrument(io, {
 });
 
 var roomsMap = new Map<string, string[]>();
+
+async function getRooms() {   
+    const rooms = await prisma.room.findMany({
+        include: {
+            users: true
+        }
+    });
+
+    if(rooms) {
+        io.emit("update-rooms", rooms);
+    }       
+}
+
+
 
 
 

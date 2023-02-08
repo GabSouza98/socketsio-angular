@@ -1,0 +1,13 @@
+<div class="container">
+
+    <div class="flex column">
+      
+      <h1 class="title">Welcome to Sockets Io Chat Rooms</h1>
+      
+      <div class="row create-user">
+        <input type="text" autocomplete="off" placeholder="User name..." id="user-input" [(ngModel)]="userName">
+        <button (click)="onCreateUser(userName)" type="button" id="user-button">Create User</button>
+      </div>
+  
+    </div>
+</div>

@@ -5,8 +5,15 @@
       <h1 class="title">Welcome to Sockets Io Chat Rooms</h1>
   
       <ul class="rooms-container">       
-        <div *ngFor="let room of roomNames">
-          <a [routerLink]="['/room', room]">{{room}}</a>
+        <div class="room-item">
+          <p class="room-name">Room Name</p>
+          <p class="room-users">Users</p>
+          <p class="room-users" style="width: 5% !important;">Del</p>
+        </div>
+        <div class="room-item" *ngFor="let room of rooms">
+          <a class="room-name" [routerLink]="['/room', room.name]">{{room.name}}</a>
+          <p class="room-users">{{room.users.length}}/10</p>
+          <button (click)="onDeleteRoom(room.name)" [disabled]="notEmpty(room)" type="button" id="delete-button">X</button>
         </div>
       </ul>
       

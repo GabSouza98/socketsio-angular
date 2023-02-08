@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Socket } from 'ngx-socket-io';  
+import { Room } from '../models/rooms';
 
 @Injectable({
   providedIn: 'root'
@@ -15,7 +16,7 @@ export class SocketService {
 
 	// listen event
 	onFetchRooms() {
-		return this.socket.fromEvent<string[]>("update-rooms");
+		return this.socket.fromEvent<Room[]>("update-rooms");
 	}
 
   joinRoom(room : string) {
@@ -36,6 +37,14 @@ export class SocketService {
 
   createRoom(room : string) {
     this.socket.emit("create-room", room);
+  }
+
+  createUser(user : string) {
+    this.socket.emit("create-user", user);
+  }
+
+  deleteRoom(room : string) {
+    this.socket.emit("delete-room", room);
   }
 
 }

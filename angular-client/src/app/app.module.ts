@@ -9,6 +9,7 @@ import { environment } from 'src/environments/environment';
 import { SocketIoModule, SocketIoConfig } from 'ngx-socket-io';
 import { ChatComponent } from './components/chat/chat.component';
 import { RoomsComponent } from './components/rooms/rooms.component';
+import { LoginComponent } from './components/login/login.component';
 
 const config: SocketIoConfig = {
 	url: environment.socketUrl, // socket server url;
@@ -21,7 +22,8 @@ const config: SocketIoConfig = {
   declarations: [
     AppComponent,
     ChatComponent,
-    RoomsComponent
+    RoomsComponent,
+    LoginComponent
   ],
   imports: [
     BrowserModule,
