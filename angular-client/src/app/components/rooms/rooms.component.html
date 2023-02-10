@@ -2,18 +2,20 @@
 
     <div class="flex column">
       
-      <h1 class="title">Welcome to Sockets Io Chat Rooms</h1>
+      <h1 class="title">Welcome {{userName}}</h1>
   
       <ul class="rooms-container">       
         <div class="room-item">
           <p class="room-name">Room Name</p>
           <p class="room-users">Users</p>
-          <p class="room-users" style="width: 5% !important;">Del</p>
+          <p class="room-delete">Del</p>
         </div>
-        <div class="room-item" *ngFor="let room of rooms">
-          <a class="room-name" [routerLink]="['/room', room.name]">{{room.name}}</a>
-          <p class="room-users">{{room.users.length}}/10</p>
-          <button (click)="onDeleteRoom(room.name)" [disabled]="notEmpty(room)" type="button" id="delete-button">X</button>
+        <div *ngFor="let room of rooms">
+          <div class="room-item">
+            <a class="room-name" [routerLink]="['/room', room.name]">{{room.name}}</a>
+            <a class="room-users" [routerLink]="['/room', room.name]">{{room.users.length}}</a>
+            <button (click)="onDeleteRoom(room.name)" [disabled]="notEmpty(room)" type="button" id="delete-button">X</button>
+          </div>
         </div>
       </ul>
       

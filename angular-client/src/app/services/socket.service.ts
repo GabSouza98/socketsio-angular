@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Socket } from 'ngx-socket-io';  
-import { Room } from '../models/rooms';
+import { Message, Room } from '../models/rooms';
 
 @Injectable({
   providedIn: 'root'
@@ -27,13 +27,21 @@ export class SocketService {
     this.socket.emit("leave-room", room);
   }
 
-  sendMessage(message : string, room : string) {
-    this.socket.emit("send-message", message, room);
+  sendMessage(message : string, room : string, user : string) {
+    this.socket.emit("send-message", message, room, user);
   }
 
   onReceiveMessage() {
-		return this.socket.fromEvent<string>("receive-message");
+		return this.socket.fromEvent<Message>("receive-message");
 	}
+
+  fetchMessages(room : string) {
+    this.socket.emit("fetch-messages", room);
+  }
+
+  onFetchMessages() {
+    return this.socket.fromEvent<Message[]>("update-messages");
+  }
 
   createRoom(room : string) {
     this.socket.emit("create-room", room);

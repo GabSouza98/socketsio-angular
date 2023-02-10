@@ -11,3 +11,13 @@ export interface User {
     socket: String,
     userName?: String    
 }
+
+export interface Message {
+    id: BigInt,
+    text: String,
+    sentBy: String,
+    createdAt: Date,
+    roomId: BigInt
+}
+
+

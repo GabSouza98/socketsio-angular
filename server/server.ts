@@ -12,24 +12,30 @@ const io = new Server(3000, {
     // credentials: true
 });
 
-// const io = require("socket.io")(3000, {
-//     cors: {
-//         origin: ["https://admin.socket.io", "http://localhost:8080", "http://localhost:4200"],
-//     },    
-//     credentials: true
-// })
-
 io.on("connection", (socket : any) => {
     console.log(socket.id);
 
-    socket.on("send-message", (message : string, room : string) => {
-        if(room === "") {
-            //manda para todos exceto a fonte
-            io.emit("receive-message", message);
-        } else {
-            //manda para o usuario da sala
-            io.to(room).emit("receive-message", message);
-        }                   
+    socket.on("send-message", async (message: string, room: string, userName: string) => {        
+            
+        const existingRoom = await prisma.room.findUnique({
+            where: {
+                name: room
+            }
+        });
+
+        if(existingRoom) {      
+            
+            const messageCreated = await prisma.message.create({
+                data: {
+                    text: message,
+                    sentBy: userName,
+                    roomId: existingRoom.id
+                }
+            })  
+
+            //manda para os usuarios da sala
+            io.to(room).emit("receive-message", messageCreated);
+        }                                     
     })
 
     socket.on("join-room", async (room : string) => {
@@ -157,11 +163,26 @@ io.on("connection", (socket : any) => {
     })
     
     socket.on("delete-room", async (room : string) => { 
+        
         const existingRoom = await prisma.room.findUnique({
             where: {
                 name: room
+            },
+            include: {
+                messages: true,
+                users: true
             }
         });
+
+
+        //delete all messages from that room
+        if(existingRoom?.messages) {
+            await prisma.message.deleteMany({
+                where: {
+                    roomId: existingRoom.id
+                }
+            })
+        }
 
         if(existingRoom) {
             await prisma.room.delete({
@@ -174,21 +195,43 @@ io.on("connection", (socket : any) => {
         getRooms();
     })
 
+    socket.on("fetch-messages", async (room : string) => {
+        
+        const existingRoom = await prisma.room.findUnique({
+            where: {
+                name: room
+            },
+            include: {
+                messages: true
+            }
+        });
 
-    // setInterval(async function () {
-    //     console.log("ROOMS");
-    //     const rooms = await prisma.room.findMany();
-    //     if(rooms) {
-    //         console.log(rooms);
-    //     }
+        if(existingRoom) {
+            io.emit("update-messages", existingRoom.messages);
+        }
 
-    //     console.log("USERS");
-    //     const users = await prisma.user.findMany();
-    //     if(users) {
-    //         console.log(users);
-    //     }
+    })
 
-    // }, 5000);
+    setInterval(async function () {
+        console.log("ROOMS");
+        const rooms = await prisma.room.findMany( 
+            {include: {
+                users: true,
+                messages: true
+                }
+            }
+        );
+        if(rooms) {
+            console.log(rooms);
+        }
+
+        console.log("USERS");
+        const users = await prisma.user.findMany();
+        if(users) {
+            console.log(users);
+        }
+
+    }, 5000);
 
 })
 

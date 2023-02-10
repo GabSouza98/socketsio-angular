@@ -11,13 +11,23 @@ model Room {
   id    Int    @id @default(autoincrement())
   name  String @unique
   users User[]
+  messages Message[]
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  roomId    Int?
+  id        Int      @id @default(autoincrement())  
   createdAt DateTime @default(now())
   socket    String   @unique
   userName  String?
+  roomId    Int?
   room      Room?     @relation(fields: [roomId], references: [id])
+}
+
+model Message {
+  id        Int      @id @default(autoincrement())
+  text      String
+  sentBy    String
+  createdAt DateTime @default(now())
+  roomId    Int
+  room      Room     @relation(fields: [roomId], references: [id])
 }
