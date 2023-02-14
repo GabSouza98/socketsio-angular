@@ -163,7 +163,7 @@ io.on("connection", (socket : any) => {
     })
     
     socket.on("delete-room", async (room : string) => { 
-        
+
         const existingRoom = await prisma.room.findUnique({
             where: {
                 name: room
@@ -212,26 +212,26 @@ io.on("connection", (socket : any) => {
 
     })
 
-    setInterval(async function () {
-        console.log("ROOMS");
-        const rooms = await prisma.room.findMany( 
-            {include: {
-                users: true,
-                messages: true
-                }
-            }
-        );
-        if(rooms) {
-            console.log(rooms);
-        }
+    // setInterval(async function () {
+    //     console.log("ROOMS");
+    //     const rooms = await prisma.room.findMany( 
+    //         {include: {
+    //             users: true,
+    //             messages: true
+    //             }
+    //         }
+    //     );
+    //     if(rooms) {
+    //         console.log(rooms);
+    //     }
 
-        console.log("USERS");
-        const users = await prisma.user.findMany();
-        if(users) {
-            console.log(users);
-        }
+    //     console.log("USERS");
+    //     const users = await prisma.user.findMany();
+    //     if(users) {
+    //         console.log(users);
+    //     }
 
-    }, 5000);
+    // }, 5000);
 
 })
 
